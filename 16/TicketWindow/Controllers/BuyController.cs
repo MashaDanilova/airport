@@ -27,14 +27,22 @@ namespace TicketWindow.Controllers
         // GET api/<controller>/5
         // GET request for buying a ticket and getting it back
         [HttpGet("{ps}/{fl}")]
-        public string Get(int id, string ps, string fl)
+        public string Get(string ps, string fl)
         {
             Flight f = JsonConvert.DeserializeObject<Flight>(fl);
             FlightPassenger p = JsonConvert.DeserializeObject<FlightPassenger>(ps);
             int passnumber = 0; //number of passengers in the plain
             int flightID = f.reisNumber;
             string ticketJson = null;
-            string scheduleData = ScheduleHttpClient.ScheduleRequest(flightID);
+            string scheduleData = null;
+            try
+            {
+                scheduleData = ScheduleHttpClient.ScheduleRequest(flightID);
+            }
+            catch (Exception e)
+            {
+                scheduleData = "-5";
+            }
             int scheduleInt = Convert.ToInt32(scheduleData);
             if (scheduleInt >= 0)
             {
@@ -67,6 +75,10 @@ namespace TicketWindow.Controllers
                 else if (scheduleInt == -4 || scheduleInt == -2 || scheduleInt == -1)
                 {
                     return "1"; //flight to this city doesn't exist or plain has already landed or there is no plain for this flight - can not buy a ticket
+                }
+                else if (scheduleInt == -5)
+                {
+                    return "5"; //no response from schedule
                 }
                 else
                 {
